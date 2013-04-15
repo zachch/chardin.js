@@ -41,7 +41,7 @@ Add the instructions to your elements:
 <img src="img/chardin.png" data-intro="An awesome 18th-century painter, who found beauty in everyday, common things." data-position="right" />
 ```
 
-## Running
+## Running (single step only)
 
 Once you have your elements ready you can show instructions running
 
@@ -55,6 +55,38 @@ change `body` to some other selector.
 ```Javascript
 $('.container').chardinJs('start')
 ```
+
+## Running (multiple step tutorial)
+
+The set up for running a multiple step tutorial is slightly different. Firstly, you have to define all the steps in the following manner
+
+```Javascript
+tutorialSteps = {
+  'selector1': {
+    next: 'selector2',
+    intro: 'Some text here',
+    position: 'right'
+  },
+  'selector2': {
+    next: '',
+    redirect: '/to_some_url',
+    intro: 'Some text here',
+    position: 'right'
+  }
+}
+```
+
+Where 'selector1' represents a selector of one step in the tutorial.
+
+Then to start the tutorial, call the following
+
+```Javascript
+$('.container').chardinJs('start', tutorialSteps, 'selector1')
+```
+
+The 3rd argument ('selector1') should be the step that you want to start the tutorial at. Starting the tutorial will run through the steps (starting from the step in the 3rd argument) till the last step.
+
+Do not insert the data-intro and data-position attributes into the DOM. The script will handle the insertion and removal automatically. 
 
 ## Methods
 
