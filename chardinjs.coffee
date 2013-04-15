@@ -5,9 +5,17 @@ do ($ = window.jQuery, window) ->
       @$el = $(el)
       $(window).resize => @.refresh()
 
-    start: ->
-      return false if @._overlay_visible()
-      @._add_overlay_layer()
+    start: (sequence, currentStep) ->
+      @sequence = sequence
+      @currentStep = currentStep
+      $("html,body").scrollTop(0)
+      if @sequence && @currentStep
+        @._prep_step(@sequence, @currentStep)
+        if !@._overlay_visible()
+          @._add_overlay_layer()
+      else
+        return false if @._overlay_visible()
+        @._add_overlay_layer()
       @._show_element(el) for el in @$el.find('*[data-intro]')
 
       @$el.trigger 'chardinJs:start'
@@ -25,7 +33,8 @@ do ($ = window.jQuery, window) ->
         return this
 
     stop: () ->
-      @$el.find(".chardinjs-overlay").fadeOut -> $(this).remove()
+      if !@._next_step(@sequence, @currentStep)
+        @$el.find(".chardinjs-overlay").fadeOut -> $(this).remove()
 
       @$el.find('.chardinjs-helper-layer').remove()
 
@@ -37,7 +46,27 @@ do ($ = window.jQuery, window) ->
       #IE
       else document.detachEvent "onkeydown", @_onKeyDown  if document.detachEvent
 
-      @$el.trigger 'chardinJs:stop'
+      if @._next_step(@sequence, @currentStep)
+        @._remove_step(@sequence, @currentStep)
+        @.start(@sequence, @sequence[@currentStep]['next'])
+      else if @._redirect_after(@sequence, @currentStep)
+        window.location.href = @sequence[@currentStep]['redirect']
+      else
+        @$el.trigger 'chardinJs:stop'
+
+    _prep_step: (sequence, stepToPrep) ->
+      @$el.find(stepToPrep).attr('data-intro', sequence[stepToPrep]['intro'])
+      @$el.find(stepToPrep).attr('data-position', sequence[stepToPrep]['position'])
+
+    _remove_step: (sequence, stepToRemove) ->
+      @$el.find(stepToRemove).removeAttr('data-intro')
+      @$el.find(stepToRemove).removeAttr('data-position')
+
+    _redirect_after: (sequence, currentStep) ->
+      sequence[currentStep]['redirect'].length != 0
+
+    _next_step: (sequence, currentStep) ->
+      sequence[currentStep]['next'].length != 0
 
     _overlay_visible: ->
       @$el.find('.chardinjs-overlay').length != 0
